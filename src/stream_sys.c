@@ -969,8 +969,9 @@ str_src_r_buf_alloc(str_hub_p str_hub) {
 		SYSLOG_ERR(LOG_ERR, error, "ftruncate(%s).", filename);
 		goto err_out;
 	}
-	str_hub->r_buf = r_buf_alloc(str_hub->r_buf_fd, str_hub->shbskt->hub_params.ring_buf_size,
-	    MPEG2_TS_PKT_SIZE_188);
+	str_hub->r_buf = r_buf_alloc(str_hub->r_buf_fd,
+	    str_hub->shbskt->hub_params.ring_buf_size,
+	    MPEG2_TS_PKT_SIZE_188, 0);
 	if (NULL == str_hub->r_buf) {
 		error = errno;
 		SYSLOG_ERR(LOG_ERR, error, "r_buf_alloc().");
