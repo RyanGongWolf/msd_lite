@@ -44,7 +44,7 @@ git clone --recursive https://github.com/rozhuk-im/msd_lite.git
 cd msd_lite
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=true ..
 make -j 8
 ```
 
