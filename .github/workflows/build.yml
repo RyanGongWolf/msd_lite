@@ -3,7 +3,7 @@ name: Build msd-lite
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build-msd-lite:
@@ -13,21 +13,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Clone and build msd-lite
+    - name: Clone and build with CMake
       run: |
+        # 克隆你的项目
         git clone https://github.com/RyanGongWolf/msd_lite.git
         cd msd_lite
-        sudo apt-get update
-        sudo apt-get install -y meson ninja-build libcap-dev
-        meson setup build
-        meson compile -C build
         
-        # 打包编译结果
+        # 查看项目结构（用于调试）
+        echo "项目文件列表："
+        ls -la
+        echo "---"
+        
+        # 安装 CMake 和编译工具
+        sudo apt-get update
+        sudo apt-get install -y cmake make gcc g++ build-essential
+        
+        # 使用 CMake 构建
+        mkdir -p build
         cd build
-        tar -czvf msd-lite-binaries.tar.gz ./*
+        cmake ..
+        make -j$(nproc)
+        
+        # 查看生成的文件
+        echo "编译生成的文件："
+        find . -type f -executable
+        ls -la
+        
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
       with:
         name: msd-lite-compiled
-        path: msd-lite/build/msd-lite-binaries.tar.gz
+        path: msd_lite/build/**/*  # 上传build目录下的所有文件
