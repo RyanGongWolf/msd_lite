@@ -15,8 +15,7 @@ jobs:
 
     - name: Clone and build with CMake
       run: |
-        # 克隆你的项目
-        git clone https://github.com/RyanGongWolf/msd_lite.git
+        git clone --recursive https://github.com/rozhuk-im/msd_lite.git
         cd msd_lite
         
         # 查看项目结构（用于调试）
