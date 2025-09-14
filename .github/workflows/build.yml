@@ -18,15 +18,10 @@ jobs:
         git clone --recursive https://github.com/rozhuk-im/msd_lite.git
         cd msd_lite
         
-        # 安装必要的依赖（包括静态库）
+        # 安装必要的依赖
         sudo apt-get update
         sudo apt-get install -y cmake make gcc g++ build-essential \
           libssl-dev libcrypto++-dev libuv1-dev
-        
-        # 尝试安装静态库版本（如果可用）
-        sudo apt-get install -y libssl-static || echo "libssl-static not available, will use dynamic linking for ssl"
-        sudo apt-get install -y libcrypto++-static || echo "libcrypto++-static not available"
-        sudo apt-get install -y libuv-static || echo "libuv-static not available"
         
         # 使用 CMake 构建，启用静态链接
         mkdir -p build
@@ -35,13 +30,20 @@ jobs:
         # 设置静态链接标志
         cmake .. \
           -DCMAKE_EXE_LINKER_FLAGS="-static" \
-          -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
           -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_BUILD_TYPE=Release
+        
         make -j$(nproc)
         
-    - name: Upload binaries
+        # 验证构建结果
+        echo "构建完成，目录内容："
+        ls -la
+        echo "可执行文件："
+        find . -type f -executable
+        
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: msd-lite-static
-        path: msd_lite/build/msd_lite
+        name: msd-lite-static-build
+        path: msd_lite/build/
+        if-no-files-found: error
