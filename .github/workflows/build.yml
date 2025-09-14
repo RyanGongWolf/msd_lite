@@ -38,16 +38,7 @@ jobs:
           -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
           -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_BUILD_TYPE=Release
-        
         make -j$(nproc)
-        
-        # 检查二进制文件是否为静态链接
-        echo "检查二进制文件链接类型："
-        ldd msd_lite 2>/dev/null || echo "二进制文件可能是静态链接（ldd 无法检查）"
-        file msd_lite
-        
-        # 检查文件大小（静态链接通常更大）
-        ls -lh msd_lite
         
     - name: Upload binaries
       uses: actions/upload-artifact@v4
