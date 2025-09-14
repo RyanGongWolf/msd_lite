@@ -1,4 +1,4 @@
-name: Build msd-lite
+name: Build msd-lite with static linking
 
 on:
   push:
@@ -13,34 +13,44 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Clone and build with CMake
+    - name: Clone and build with CMake (static linking)
       run: |
         git clone --recursive https://github.com/rozhuk-im/msd_lite.git
         cd msd_lite
         
-        # 查看项目结构（用于调试）
-        echo "项目文件列表："
-        ls -la
-        echo "---"
-        
-        # 安装 CMake 和编译工具
+        # 安装必要的依赖（包括静态库）
         sudo apt-get update
-        sudo apt-get install -y cmake make gcc g++ build-essential
+        sudo apt-get install -y cmake make gcc g++ build-essential \
+          libssl-dev libcrypto++-dev libuv1-dev
         
-        # 使用 CMake 构建
+        # 尝试安装静态库版本（如果可用）
+        sudo apt-get install -y libssl-static || echo "libssl-static not available, will use dynamic linking for ssl"
+        sudo apt-get install -y libcrypto++-static || echo "libcrypto++-static not available"
+        sudo apt-get install -y libuv-static || echo "libuv-static not available"
+        
+        # 使用 CMake 构建，启用静态链接
         mkdir -p build
         cd build
-        cmake ..
+        
+        # 设置静态链接标志
+        cmake .. \
+          -DCMAKE_EXE_LINKER_FLAGS="-static" \
+          -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DCMAKE_BUILD_TYPE=Release
+        
         make -j$(nproc)
         
-        # 查看生成的文件
-        echo "编译生成的文件："
-        find . -type f -executable
-        ls -la
+        # 检查二进制文件是否为静态链接
+        echo "检查二进制文件链接类型："
+        ldd msd_lite 2>/dev/null || echo "二进制文件可能是静态链接（ldd 无法检查）"
+        file msd_lite
         
-
+        # 检查文件大小（静态链接通常更大）
+        ls -lh msd_lite
+        
     - name: Upload binaries
       uses: actions/upload-artifact@v4
       with:
-        name: msd-lite-compiled
-        path: msd_lite/build/**/*  # 上传build目录下的所有文件
+        name: msd-lite-static
+        path: msd_lite/build/msd_lite
